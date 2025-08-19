@@ -5,7 +5,6 @@ import FormInput from '../../components/form/FormInput'
 import useAuthStore from '../../store/auth.store'
 import { useNavigate } from 'react-router'
 import { useState } from 'react'
-import axios from '../../configs/axios'
 
 function Login() {
   const navigate = useNavigate()
@@ -28,14 +27,6 @@ function Login() {
       }
     } else {
       alert(result.message || 'Login failed')
-    }
-  }
-
-  const test = async () => {
-    try {
-      const res = await axios.get('auth/testToken')
-    } catch (error) {
-      console.log(error)
     }
   }
 
@@ -73,10 +64,10 @@ function Login() {
           {isSubmitting ? 'Logging in...' : 'Login'}
         </button>
       </form>
-      <button 
+      {/* <button 
       className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded"
       onClick={test}>test
-      </button>
+      </button> */}
     </div>
   )
 }
