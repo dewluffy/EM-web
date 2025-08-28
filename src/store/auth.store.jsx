@@ -5,7 +5,7 @@ import { persist } from 'zustand/middleware'
 //  Create Store
 const authStore = (set) => ({
   accessToken: null,
-  user: [],
+  user: null,
   
   // Login
   actionLoginWithZustand: async (value) => {
@@ -24,7 +24,7 @@ const authStore = (set) => ({
 
   // Logout
   actionLogout: () => {
-    set({ accessToken: null, user: [] })
+    set({ accessToken: null, user: null })
   }
 })
 

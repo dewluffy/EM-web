@@ -5,7 +5,7 @@ function UserNavbar() {
     <nav className="bg-blue-800 text-white px-6 py-4 shadow-md flex justify-between items-center">
       {/* Logo / Title */}
       <div className="text-xl font-bold tracking-wide">
-        🛠️ Admin Panel
+        🛠️ Employee Panel
       </div>
 
       {/* Navigation Links */}

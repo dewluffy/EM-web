@@ -2,7 +2,7 @@ import { Navigate, Outlet } from 'react-router'
 import useAuthStore from '../store/auth.store'
 
 function ProtectedRoute({ allowedRoles = [] }) {
-  const token = useAuthStore(state => state.token)
+  const token = useAuthStore(state => state.accessToken)
   const user = useAuthStore(state => state.user)
 
   if (!token) {
