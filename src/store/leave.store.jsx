@@ -1,121 +1,120 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import * as leaveApi from "../api/leave"; // ต้องสร้าง api แยก
+import * as leaveApi from "../api/leave";
 
-const leaveStore = (set) => ({
-  leaves: [],           // ข้อมูล leave ของ user
-  leaveDays: 12,        // สมมติค่าเริ่มต้น 12 วันต่อปี
-  pendingLeaves: [],    // สำหรับ admin
-  rejectedLeaves: [],
+const leaveStore = (set, get) => ({
+  leaves: [],
+  leaveTypes: [],
+  selectedLeave: null,
+  loading: false,
+  error: null,
 
-  // ==========================
-  // สำหรับ user เรียกข้อมูล leave ของตัวเอง
-  // ==========================
-  getMyLeave: async () => {
+  // Leave Types
+  fetchLeaveTypes: async () => {
+    set({ loading: true });
     try {
-      const res = await leaveApi.getLeaves();
-      const myLeaves = res.data.leaves || [];
-
-      // คำนวณ leaveDays ที่เหลือ
-      const leaveDaysRemaining = myLeaves.reduce((acc, leave) => {
-        if (leave.status === "approved") return acc - leave.days;
-        return acc;
-      }, 12);
-
-      set({ leaves: myLeaves, leaveDays: leaveDaysRemaining });
-      return { success: true, leaveDays: leaveDaysRemaining };
-    } catch (error) {
-      return { success: false, message: error.response?.data?.message || "Failed to fetch leaves" };
+      const leaveTypes = await leaveApi.getLeaveTypes();
+      set({ leaveTypes, loading: false });
+    } catch (err) {
+      set({ error: err.message || "Failed to fetch leave types", loading: false });
     }
   },
 
-  // ==========================
-  // CRUD Leave สำหรับ user
-  // ==========================
-  createLeave: async (data) => {
+  // Leaves
+  fetchLeaves: async () => {
+    set({ loading: true });
     try {
-      const res = await leaveApi.createLeave(data);
-      set((state) => ({ leaves: [...state.leaves, res.data.leave] }));
-      return { success: true, leave: res.data.leave };
-    } catch (error) {
-      return { success: false, message: error.response?.data?.message || "Failed to create leave" };
+      const leaves = await leaveApi.getAllLeaves();
+      set({ leaves, loading: false });
+    } catch (err) {
+      set({ error: err.message || "Failed to fetch leaves", loading: false });
+    }
+  },
+
+  createLeave: async (data) => {
+    set({ loading: true });
+    try {
+      await leaveApi.createLeave(data);
+      await get().fetchLeaves();
+      set({ loading: false });
+    } catch (err) {
+      set({ error: err.message || "Failed to create leave", loading: false });
     }
   },
 
   updateLeave: async (id, data) => {
+    set({ loading: true });
     try {
-      const res = await leaveApi.updateLeave(id, data);
-      set((state) => ({
-        leaves: state.leaves.map((l) => (l.id === id ? res.data.leave : l))
-      }));
-      return { success: true, leave: res.data.leave };
-    } catch (error) {
-      return { success: false, message: error.response?.data?.message || "Failed to update leave" };
+      await leaveApi.updateLeave(id, data);
+      await get().fetchLeaves();
+      set({ loading: false });
+    } catch (err) {
+      set({ error: err.message || "Failed to update leave", loading: false });
     }
   },
 
   deleteLeave: async (id) => {
+    set({ loading: true });
     try {
       await leaveApi.deleteLeave(id);
-      set((state) => ({ leaves: state.leaves.filter((l) => l.id !== id) }));
-      return { success: true };
-    } catch (error) {
-      return { success: false, message: error.response?.data?.message || "Failed to delete leave" };
-    }
-  },
-
-  // ==========================
-  // สำหรับ admin
-  // ==========================
-  fetchPendingLeaves: async () => {
-    try {
-      const res = await leaveApi.getPendingLeaves();
-      set({ pendingLeaves: res.data.leaves });
-      return { success: true };
-    } catch (error) {
-      return { success: false, message: error.response?.data?.message || "Failed to fetch pending leaves" };
-    }
-  },
-
-  fetchRejectedLeaves: async () => {
-    try {
-      const res = await leaveApi.getRejectedLeaves();
-      set({ rejectedLeaves: res.data.leaves });
-      return { success: true };
-    } catch (error) {
-      return { success: false, message: error.response?.data?.message || "Failed to fetch rejected leaves" };
+      await get().fetchLeaves();
+      set({ loading: false });
+    } catch (err) {
+      set({ error: err.message || "Failed to delete leave", loading: false });
     }
   },
 
   approveLeave: async (id) => {
+    set({ loading: true });
     try {
-      const res = await leaveApi.approveLeave(id);
-      set((state) => ({
-        pendingLeaves: state.pendingLeaves.filter((l) => l.id !== id),
-        leaves: state.leaves.map((l) => (l.id === id ? res.data.leave : l))
-      }));
-      return { success: true, leave: res.data.leave };
-    } catch (error) {
-      return { success: false, message: error.response?.data?.message || "Failed to approve leave" };
+      await leaveApi.approveLeave(id);
+      await get().fetchLeaves();
+      set({ loading: false });
+    } catch (err) {
+      set({ error: err.message || "Failed to approve leave", loading: false });
     }
   },
 
   rejectLeave: async (id) => {
+    set({ loading: true });
     try {
-      const res = await leaveApi.rejectLeave(id);
-      set((state) => ({
-        pendingLeaves: state.pendingLeaves.filter((l) => l.id !== id),
-        rejectedLeaves: [...state.rejectedLeaves, res.data.leave]
-      }));
-      return { success: true, leave: res.data.leave };
-    } catch (error) {
-      return { success: false, message: error.response?.data?.message || "Failed to reject leave" };
+      await leaveApi.rejectLeave(id);
+      await get().fetchLeaves();
+      set({ loading: false });
+    } catch (err) {
+      set({ error: err.message || "Failed to reject leave", loading: false });
     }
-  }
+  },
+
+  fetchPendingLeaves: async () => {
+    set({ loading: true });
+    try {
+      const leaves = await leaveApi.getPendingLeaves();
+      set({ leaves, loading: false });
+    } catch (err) {
+      set({ error: err.message || "Failed to fetch pending leaves", loading: false });
+    }
+  },
+
+  fetchRejectedLeaves: async () => {
+    set({ loading: true });
+    try {
+      const leaves = await leaveApi.getRejectedLeaves();
+      set({ leaves, loading: false });
+    } catch (err) {
+      set({ error: err.message || "Failed to fetch rejected leaves", loading: false });
+    }
+  },
 });
 
 const useLeaveStore = create(
-  persist(leaveStore, { name: "leave-store" })
+  persist(leaveStore, {
+    name: "leave-store",
+    partialize: (state) => ({
+      leaves: state.leaves,
+      leaveTypes: state.leaveTypes,
+    }),
+  })
 );
 
 export default useLeaveStore;

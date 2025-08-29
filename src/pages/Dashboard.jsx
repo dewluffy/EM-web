@@ -6,7 +6,6 @@ import useLeaveStore from '../store/leave.store';
 import UserProfile from '../components/user/UserProfile';
 import QuickLinks from '../components/user/QuickLinks';
 import TimeClock from '../components/user/userDashboard/TimeClock';
-import LeaveSummary from '../components/user/userDashboard/LeaveSummary';
 import RecentActivity from '../components/user/userDashboard/RecentActivity';
 
 function Dashboard() {
@@ -60,9 +59,6 @@ function Dashboard() {
           checkOut={checkOut} 
           loading={attendanceLoading} 
         />
-
-        {/* Leave Summary */}
-        <LeaveSummary leaveDays={leaveDays} />
 
         {/* Recent Activity */}
         <RecentActivity activities={recentActivities} />
